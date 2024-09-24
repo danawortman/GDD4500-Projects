@@ -14,8 +14,8 @@ namespace GDD4500_ConsoleClientLab
         {
             try
             {
-                IPAddress ipaddress = IPAddress.Parse("10.0.0.162");
-                Int32 port = 5555;
+                IPAddress ipaddress = IPAddress.Parse("127.0.0.1");
+                Int32 port = 7777;
 
                 Console.WriteLine("Connecting to server " + ipaddress.ToString() + ":" + port);
                 
