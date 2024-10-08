@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -5,48 +6,77 @@ namespace HelloWorld
 {
     public class HelloWorldPlayer : NetworkBehaviour
     {
-        public NetworkVariable<Vector3> Position = new NetworkVariable<Vector3>();
+        public NetworkVariable<int> Health = new NetworkVariable<int>();
+        public NetworkVariable<Color> CurrColor = new NetworkVariable<Color>();
 
         public override void OnNetworkSpawn()
         {
-            Position.OnValueChanged += OnStateChanged;
+            Debug.Log("OnNetworkSpawn called");
+
+            Health.OnValueChanged += OnHealthChanged;
+            CurrColor.OnValueChanged += OnColorChanged;
+
+            if (IsServer)
+            {
+                Health.Value = 10;
+
+                // Set the color of the player to random color
+                CurrColor.Value = Random.ColorHSV();
+
+                // Call the ChangeHealth coroutine
+                StartCoroutine(ChangeHealth(10));
+            }
 
             if (IsOwner)
             {
-                Move();
+                transform.position = new Vector3(Random.Range(-3f, 3f), 1f, Random.Range(-3f, 3f));
             }
+
+            GetComponent<Renderer>().material.color = CurrColor.Value;
         }
 
         public override void OnNetworkDespawn()
         {
-            Position.OnValueChanged -= OnStateChanged;
+            Health.OnValueChanged -= OnHealthChanged;
+            CurrColor.OnValueChanged -= OnColorChanged;
         }
 
-        public void OnStateChanged(Vector3 previous, Vector3 current)
+        public void OnHealthChanged(int previous, int current)
         {
-            // note: `Position.Value` will be equal to `current` here
-            if (Position.Value != previous)
+            if (Health.Value != previous)
             {
-                transform.position = Position.Value;
+                Debug.Log("OnStateChanged: " + previous + " -> " + current);
+            }
+            if (Health.Value <= 0)
+            {
+                Debug.Log("Player died");
+                DespawnPlayerServerRpc();
             }
         }
 
-        public void Move()
+        public void OnColorChanged(Color previous, Color current)
         {
-            SubmitPositionRequestServerRpc();
+            if (CurrColor.Value != previous)
+            {
+                Debug.Log("OnColorChanged: " + previous + " -> " + current);
+                GetComponent<Renderer>().material.color = CurrColor.Value;
+            }
         }
 
         [Rpc(SendTo.Server)]
-        void SubmitPositionRequestServerRpc(RpcParams rpcParams = default)
+        public void DespawnPlayerServerRpc()
         {
-            var randomPosition = GetRandomPositionOnPlane();
-            transform.position = randomPosition;
-            Position.Value = randomPosition;
+            Destroy(gameObject);
+            NetworkObject.Despawn(true);
         }
 
-        static Vector3 GetRandomPositionOnPlane()
+        public IEnumerator ChangeHealth(int newHealth)
         {
-            return new Vector3(Random.Range(-3f, 3f), 1f, Random.Range(-3f, 3f));
+            while (true)
+            {
+                yield return new WaitForSeconds(1);
+                Health.Value -= 1;
+            }
         }
     }
 }

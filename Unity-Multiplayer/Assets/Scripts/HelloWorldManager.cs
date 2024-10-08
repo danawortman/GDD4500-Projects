@@ -35,7 +35,6 @@ namespace HelloWorld
             hostButton.clicked += OnHostButtonClicked;
             clientButton.clicked += OnClientButtonClicked;
             serverButton.clicked += OnServerButtonClicked;
-            moveButton.clicked += SubmitNewPosition;
         }
 
         void Update()
@@ -48,7 +47,6 @@ namespace HelloWorld
             hostButton.clicked -= OnHostButtonClicked;
             clientButton.clicked -= OnClientButtonClicked;
             serverButton.clicked -= OnServerButtonClicked;
-            moveButton.clicked -= SubmitNewPosition;
         }
 
         void OnHostButtonClicked() => NetworkManager.Singleton.StartHost();
@@ -129,25 +127,6 @@ namespace HelloWorld
             string transport = "Transport: " + NetworkManager.Singleton.NetworkConfig.NetworkTransport.GetType().Name;
             string modeText = "Mode: " + mode;
             SetStatusText($"{transport}\n{modeText}");
-        }
-
-        void SubmitNewPosition()
-        {
-            if (NetworkManager.Singleton.IsServer && !NetworkManager.Singleton.IsClient)
-            {
-                foreach (ulong uid in NetworkManager.Singleton.ConnectedClientsIds)
-                {
-                    var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(uid);
-                    var player = playerObject.GetComponent<HelloWorldPlayer>();
-                    player.Move();
-                }
-            }
-            else if (NetworkManager.Singleton.IsClient)
-            {
-                var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
-                var player = playerObject.GetComponent<HelloWorldPlayer>();
-                player.Move();
-            }
         }
     }
 }
