@@ -6,9 +6,11 @@ public class PlayerController : MonoBehaviour
     // TODO: Create the object to store the player's data
 
     private string filePath;
+    private int score;
 
     void Start()
     {
+        score = 100;
         // Set the path to save the serialized file
         filePath = Application.persistentDataPath + "/playerData.json";
         Debug.Log("Data path: " + filePath);
@@ -40,14 +42,15 @@ public class PlayerController : MonoBehaviour
         transform.Translate(moveX, 0, moveZ);
 
         // Update player data
-        playerData.posX = transform.position.x;
-        playerData.posY = transform.position.y;
-        playerData.posZ = transform.position.z;
+        //playerData.posX = transform.position.x;
+        //playerData.posY = transform.position.y;
+        //playerData.posZ = transform.position.z;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            playerData.score += 10; // Increment score for demonstration
-            Debug.Log("Score updated: " + playerData.score);
+            //playerData.score += 10; // Increment score for demonstration
+            score += 10;
+            Debug.Log("Score updated: " + score);
         }
 
         // Save data on pressing "Q"
